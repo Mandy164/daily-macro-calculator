@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DailyMacro 晚餐靈感決策器</title>
+  <title>DailyMacro Caculator</title>
   <style>
     :root {
       --bg-color: #faf9f6;
@@ -242,8 +242,8 @@
 
   <div class="container">
     <header>
-      <h1>🥗 DailyMacro 晚餐靈感決策器</h1>
-      <p>早午餐固定吃？算出剩餘營養缺口，為你推薦今晚最佳外食！</p>
+      <h1>🥗 DailyMacro Caculator</h1>
+      <p>早午餐都固定吃嗎？為你算出剩餘營養缺口，推薦今晚最佳外食！</p>
     </header>
 
     <div class="grid">
@@ -255,7 +255,7 @@
             <label for="gender">生理性別</label>
             <select id="gender" onchange="calculateTargets()">
               <option value="male">男</option>
-              <option value="female">女</option>
+              <option value="female" selected>女</option>
             </select>
           </div>
           <div class="form-group">
@@ -266,11 +266,11 @@
         <div class="input-row">
           <div class="form-group">
             <label for="height">身高 (cm)</label>
-            <input type="number" id="height" value="172" min="100" max="220" oninput="calculateTargets()">
+            <input type="number" id="height" value="165" min="100" max="220" oninput="calculateTargets()">
           </div>
           <div class="form-group">
             <label for="weight">體重 (kg)</label>
-            <input type="number" id="weight" value="65" min="30" max="150" oninput="calculateTargets()">
+            <input type="number" id="weight" value="54" min="30" max="150" oninput="calculateTargets()">
           </div>
         </div>
         <div class="form-group">
@@ -294,13 +294,14 @@
       <!-- 步驟 2: 早午餐記錄 -->
       <div class="card">
         <div class="card-title">🥪 2. 今天早午餐吃了什麼？</div>
-        <label>常見外食快捷帶入（點擊自動填寫）：</label>
+        <label>常見外食快捷帶入（點擊自動累加填寫）：</label>
         <div class="preset-btns">
-          <button class="preset-btn" onclick="applyPreset(230, 8, 20, 10)">超商蛋+無糖豆漿</button>
-          <button class="preset-btn" onclick="applyPreset(350, 32, 16, 18)">鮪魚蛋餅</button>
-          <button class="preset-btn" onclick="applyPreset(580, 65, 38, 14)">舒肥雞健康便當</button>
-          <button class="preset-btn" onclick="applyPreset(850, 105, 28, 35)">排骨便當</button>
-          <button class="preset-btn" onclick="applyPreset(400, 50, 18, 10)">超商地瓜+雞肉沙拉</button>
+          <button class="preset-btn" onclick="applyPreset(140, 1, 14, 9)">🥚 水煮蛋兩顆</button>
+          <button class="preset-btn" onclick="applyPreset(130, 5, 14, 6)">🥛 無糖豆漿</button>
+          <button class="preset-btn" onclick="applyPreset(180, 42, 2, 0)">🍠 超商地瓜</button>
+          <button class="preset-btn" onclick="applyPreset(550, 60, 40, 12)">🍱 舒肥雞健康餐盒</button>
+          <button class="preset-btn" onclick="applyPreset(320, 28, 10, 18)">🥪 蛋沙拉吐司</button>
+          <button class="preset-btn" onclick="applyPreset(90, 12, 2, 3)">🥗 蔬菜沙拉</button>
           <button class="preset-btn" onclick="clearIntake()" style="color: #ef4444;">清空重填</button>
         </div>
         <div class="input-row">
@@ -426,17 +427,17 @@
     ];
 
     let currentRecipeIdx = 0;
-    let target = { cal: 2000, carbs: 200, protein: 120, fat: 55 };
+    let target = { cal: 1453, carbs: 145, protein: 109, fat: 48 };
 
     function calculateTargets() {
       const gender = document.getElementById('gender').value;
-      const age = parseFloat(document.getElementById('age').value) || 25;
-      const height = parseFloat(document.getElementById('height').value) || 170;
-      const weight = parseFloat(document.getElementById('weight').value) || 65;
+      const age = parseFloat(document.getElementById('age').value) || 24;
+      const height = parseFloat(document.getElementById('height').value) || 165;
+      const weight = parseFloat(document.getElementById('weight').value) || 54;
       const activity = parseFloat(document.getElementById('activity').value) || 1.375;
       const goal = document.getElementById('goal').value;
 
-      // BMR 計算 (Mifflin-St Jeor)
+      // BMR 計算 (Mifflin-St Jeor 公式)
       let bmr = (10 * weight) + (6.25 * height) - (5 * age);
       bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
 
@@ -553,7 +554,7 @@
       updateDashboard();
     }
 
-    // 初始化運算
+    // 頁面載入時自動初始化運算
     window.onload = function() {
       calculateTargets();
     };
