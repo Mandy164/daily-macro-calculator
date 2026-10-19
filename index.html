@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DailyMacro 晚餐靈感決策器</title>
+  <style>
+    :root {
+      --bg-color: #faf9f6;
+      --card-bg: #ffffff;
+      --text-main: #2d3748;
+      --text-muted: #718096;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --cal-color: #f97316;
+      --carbs-color: #eab308;
+      --protein-color: #10b981;
+      --fat-color: #f43f5e;
+      --danger-color: #dc2626;
+      --border-color: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .col-span-2 {
+        grid-column: span 2;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .preset-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .preset-btn {
+      background-color: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #334155;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      background-color: #e2e8f0;
+      border-color: #94a3b8;
+    }
+
+    .preset-btn:active {
+      transform: scale(0.96);
+    }
+
+    .meter-item {
+      margin-bottom: 14px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .progress-bar-bg {
+      height: 10px;
+      background-color: #e2e8f0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 5px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .alert-box {
+      background-color: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .dinner-card {
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      background-color: #f8fafc;
+      margin-top: 10px;
+    }
+
+    .dinner-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .dinner-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .dinner-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .dinner-tag {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background-color: #e2e8f0;
+      color: #475569;
+    }
+
+    .action-btn {
+      width: 100%;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-top: 12px;
+    }
+
+    .action-btn:hover {
+      background-color: var(--primary-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🥗 DailyMacro 晚餐靈感決策器</h1>
+      <p>早午餐固定吃？算出剩餘營養缺口，為你推薦今晚最佳外食！</p>
+    </header>
+
+    <div class="grid">
+      <!-- 步驟 1: 個人目標設定 -->
+      <div class="card">
+        <div class="card-title">⚙️ 1. 基本資料與目標</div>
+        <div class="input-row">
+          <div class="form-group">
+            <label for="gender">生理性別</label>
+            <select id="gender" onchange="calculateTargets()">
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="age">年齡</label>
+            <input type="number" id="age" value="24" min="15" max="80" oninput="calculateTargets()">
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="form-group">
+            <label for="height">身高 (cm)</label>
+            <input type="number" id="height" value="172" min="100" max="220" oninput="calculateTargets()">
+          </div>
+          <div class="form-group">
+            <label for="weight">體重 (kg)</label>
+            <input type="number" id="weight" value="65" min="30" max="150" oninput="calculateTargets()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="activity">每日活動量</label>
+          <select id="activity" onchange="calculateTargets()">
+            <option value="1.2">久坐上班族/學生 (缺乏運動)</option>
+            <option value="1.375" selected>輕度活動 (每週運動 1~3 天)</option>
+            <option value="1.55">中度活動 (每週運動 3~5 天)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="goal">飲食目標</label>
+          <select id="goal" onchange="calculateTargets()">
+            <option value="maintain">維持體重 (均衡配比)</option>
+            <option value="cut" selected>溫和減脂 (高蛋白低碳)</option>
+            <option value="bulk">健康增肌 (高碳高蛋白)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 步驟 2: 早午餐記錄 -->
+      <div class="card">
+        <div class="card-title">🥪 2. 今天早午餐吃了什麼？</div>
+        <label>常見外食快捷帶入（點擊自動填寫）：</label>
+        <div class="preset-btns">
+          <button class="preset-btn" onclick="applyPreset(230, 8, 20, 10)">超商蛋+無糖豆漿</button>
+          <button class="preset-btn" onclick="applyPreset(350, 32, 16, 18)">鮪魚蛋餅</button>
+          <button class="preset-btn" onclick="applyPreset(580, 65, 38, 14)">舒肥雞健康便當</button>
+          <button class="preset-btn" onclick="applyPreset(850, 105, 28, 35)">排骨便當</button>
+          <button class="preset-btn" onclick="applyPreset(400, 50, 18, 10)">超商地瓜+雞肉沙拉</button>
+          <button class="preset-btn" onclick="clearIntake()" style="color: #ef4444;">清空重填</button>
+        </div>
+        <div class="input-row">
+          <div class="form-group">
+            <label for="intake-cal">已攝取熱量 (kcal)</label>
+            <input type="number" id="intake-cal" value="0" min="0" oninput="updateDashboard()">
+          </div>
+          <div class="form-group">
+            <label for="intake-carbs">已攝取碳水 (g)</label>
+            <input type="number" id="intake-carbs" value="0" min="0" oninput="updateDashboard()">
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="form-group">
+            <label for="intake-protein">已攝取蛋白質 (g)</label>
+            <input type="number" id="intake-protein" value="0" min="0" oninput="updateDashboard()">
+          </div>
+          <div class="form-group">
+            <label for="intake-fat">已攝取脂肪 (g)</label>
+            <input type="number" id="intake-fat" value="0" min="0" oninput="updateDashboard()">
+          </div>
+        </div>
+      </div>
+
+      <!-- 步驟 3: 剩餘額度儀表板 -->
+      <div class="card">
+        <div class="card-title">📊 3. 晚餐剩餘營養額度</div>
+        
+        <div class="meter-item">
+          <div class="meter-label">
+            <span>🔥 總熱量 (Calories)</span>
+            <span id="cal-info">0 / 0 kcal</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="bar-cal" class="progress-bar" style="background-color: var(--cal-color);"></div>
+          </div>
+        </div>
+
+        <div class="meter-item">
+          <div class="meter-label">
+            <span>🍚 碳水化合物 (Carbs)</span>
+            <span id="carbs-info">0 / 0 g</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="bar-carbs" class="progress-bar" style="background-color: var(--carbs-color);"></div>
+          </div>
+        </div>
+
+        <div class="meter-item">
+          <div class="meter-label">
+            <span>🥩 蛋白質 (Protein)</span>
+            <span id="protein-info">0 / 0 g</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="bar-protein" class="progress-bar" style="background-color: var(--protein-color);"></div>
+          </div>
+        </div>
+
+        <div class="meter-item">
+          <div class="meter-label">
+            <span>🥑 脂肪 (Fat)</span>
+            <span id="fat-info">0 / 0 g</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="bar-fat" class="progress-bar" style="background-color: var(--fat-color);"></div>
+          </div>
+        </div>
+
+        <div id="alert-box" class="alert-box"></div>
+      </div>
+
+      <!-- 步驟 4: 晚餐推薦 -->
+      <div class="card">
+        <div class="card-title">🍽️ 4. 今晚吃什麼推薦</div>
+        <div id="dinner-recommendation" class="dinner-card">
+          <div id="dinner-title" class="dinner-name">正在評估剩餘額度...</div>
+          <div id="dinner-desc" class="dinner-desc">點選上方早午餐組合後，將自動運算推薦。</div>
+          <div id="dinner-tags" class="dinner-tags"></div>
+        </div>
+        <button class="action-btn" onclick="rollNextDinner()">不喜歡？換一個晚餐提案 🎲</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 預設推薦菜單庫
+    const dinnerRecipes = [
+      {
+        name: "超商高蛋白清爽餐",
+        type: "convenience",
+        desc: "大杯無糖高纖豆漿 + 經典茶葉蛋 + 和風烤雞胸沙拉",
+        tags: ["超商便利", "低碳高蛋白", "約 420 kcal"],
+        macros: { cal: 420, carbs: 18, protein: 40, fat: 12 }
+      },
+      {
+        name: "少飯舒肥健康餐盒",
+        type: "clean",
+        desc: "炙燒鯛魚或雙倍雞胸健康餐盒，飯量減半、配菜以水煮青菜為主",
+        tags: ["健康餐盒", "低脂優選", "約 520 kcal"],
+        macros: { cal: 520, carbs: 45, protein: 48, fat: 10 }
+      },
+      {
+        name: "台式傳統清爽小吃",
+        type: "street",
+        desc: "嘴邊肉湯 + 燙地瓜葉不淋肉燥 + 滷蛋豆干一份",
+        tags: ["麵攤外食", "極低碳水", "約 380 kcal"],
+        macros: { cal: 380, carbs: 12, protein: 35, fat: 16 }
+      },
+      {
+        name: "個人清湯小火鍋",
+        type: "hotpot",
+        desc: "昆布蔬菜湯底 + 板腱牛/雞肉盤 + 主食選冬粉，火鍋料換雙份蔬菜",
+        tags: ["聚餐飽足", "蔬菜充足", "約 600 kcal"],
+        macros: { cal: 600, carbs: 45, protein: 42, fat: 18 }
+      },
+      {
+        name: "鐵板原肉燒烤餐",
+        type: "steak",
+        desc: "香煎牛排或雞腿排（去皮少醬）+ 荷包蛋 + 雙份鐵板豆芽高麗菜",
+        tags: ["犒賞飽足", "優質油脂", "約 580 kcal"],
+        macros: { cal: 580, carbs: 20, protein: 50, fat: 26 }
+      }
+    ];
+
+    let currentRecipeIdx = 0;
+    let target = { cal: 2000, carbs: 200, protein: 120, fat: 55 };
+
+    function calculateTargets() {
+      const gender = document.getElementById('gender').value;
+      const age = parseFloat(document.getElementById('age').value) || 25;
+      const height = parseFloat(document.getElementById('height').value) || 170;
+      const weight = parseFloat(document.getElementById('weight').value) || 65;
+      const activity = parseFloat(document.getElementById('activity').value) || 1.375;
+      const goal = document.getElementById('goal').value;
+
+      // BMR 計算 (Mifflin-St Jeor)
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+      bmr = (gender === 'male') ? bmr + 5 : bmr - 161;
+
+      let tdee = bmr * activity;
+      let targetCal = tdee;
+
+      let carbRatio = 0.5, proteinRatio = 0.2, fatRatio = 0.3;
+
+      if (goal === 'cut') {
+        targetCal = tdee - 300;
+        carbRatio = 0.4;
+        proteinRatio = 0.3;
+        fatRatio = 0.3;
+      } else if (goal === 'bulk') {
+        targetCal = tdee + 300;
+        carbRatio = 0.45;
+        proteinRatio = 0.25;
+        fatRatio = 0.3;
+      }
+
+      target.cal = Math.round(targetCal);
+      target.carbs = Math.round((targetCal * carbRatio) / 4);
+      target.protein = Math.round((targetCal * proteinRatio) / 4);
+      target.fat = Math.round((targetCal * fatRatio) / 9);
+
+      updateDashboard();
+    }
+
+    function applyPreset(cal, carbs, protein, fat) {
+      const currCal = parseFloat(document.getElementById('intake-cal').value) || 0;
+      const currCarbs = parseFloat(document.getElementById('intake-carbs').value) || 0;
+      const currProtein = parseFloat(document.getElementById('intake-protein').value) || 0;
+      const currFat = parseFloat(document.getElementById('intake-fat').value) || 0;
+
+      document.getElementById('intake-cal').value = currCal + cal;
+      document.getElementById('intake-carbs').value = currCarbs + carbs;
+      document.getElementById('intake-protein').value = currProtein + protein;
+      document.getElementById('intake-fat').value = currFat + fat;
+
+      updateDashboard();
+    }
+
+    function clearIntake() {
+      document.getElementById('intake-cal').value = 0;
+      document.getElementById('intake-carbs').value = 0;
+      document.getElementById('intake-protein').value = 0;
+      document.getElementById('intake-fat').value = 0;
+      updateDashboard();
+    }
+
+    function updateDashboard() {
+      const inCal = parseFloat(document.getElementById('intake-cal').value) || 0;
+      const inCarbs = parseFloat(document.getElementById('intake-carbs').value) || 0;
+      const inProtein = parseFloat(document.getElementById('intake-protein').value) || 0;
+      const inFat = parseFloat(document.getElementById('intake-fat').value) || 0;
+
+      const remCal = target.cal - inCal;
+      const remCarbs = target.carbs - inCarbs;
+      const remProtein = target.protein - inProtein;
+      const remFat = target.fat - inFat;
+
+      updateBar('cal', inCal, target.cal, 'kcal', 'var(--cal-color)');
+      updateBar('carbs', inCarbs, target.carbs, 'g', 'var(--carbs-color)');
+      updateBar('protein', inProtein, target.protein, 'g', 'var(--protein-color)');
+      updateBar('fat', inFat, target.fat, 'g', 'var(--fat-color)');
+
+      // 檢查是否超標
+      const alerts = [];
+      if (remCal < 0) alerts.push("⚠️ 總熱量已超標！晚餐建議採極低卡清淡飲食。");
+      if (remCarbs < 0) alerts.push("⚠️ 碳水已超標！今晚請避開米飯麵食，以蔬菜代替。");
+      if (remFat < 0) alerts.push("⚠️ 脂肪額度已滿！請避免油炸、火鍋肉燥與含油醬汁。");
+
+      const alertEl = document.getElementById('alert-box');
+      if (alerts.length > 0) {
+        alertEl.style.display = 'block';
+        alertEl.innerHTML = alerts.join('<br>');
+      } else {
+        alertEl.style.display = 'none';
+      }
+
+      displayDinner(remCal, remCarbs, remProtein, remFat);
+    }
+
+    function updateBar(key, curr, max, unit, originalColor) {
+      const bar = document.getElementById(`bar-${key}`);
+      const info = document.getElementById(`${key}-info`);
+      const pct = Math.min(Math.round((curr / max) * 100), 100);
+      const remain = max - curr;
+
+      bar.style.width = pct + '%';
+      if (curr > max) {
+        bar.style.backgroundColor = 'var(--danger-color)';
+        info.innerHTML = `${curr} / ${max} ${unit} <b style="color:var(--danger-color);">(超標 ${Math.abs(remain)}${unit})</b>`;
+      } else {
+        bar.style.backgroundColor = originalColor;
+        info.innerHTML = `${curr} / ${max} ${unit} (剩餘 ${remain}${unit})`;
+      }
+    }
+
+    function displayDinner(remCal, remCarbs, remProtein, remFat) {
+      const recipe = dinnerRecipes[currentRecipeIdx];
+      const titleEl = document.getElementById('dinner-title');
+      const descEl = document.getElementById('dinner-desc');
+      const tagsEl = document.getElementById('dinner-tags');
+
+      titleEl.innerText = recipe.name;
+      descEl.innerText = recipe.desc;
+
+      tagsEl.innerHTML = recipe.tags.map(tag => `<span class="dinner-tag">${tag}</span>`).join('');
+    }
+
+    function rollNextDinner() {
+      currentRecipeIdx = (currentRecipeIdx + 1) % dinnerRecipes.length;
+      updateDashboard();
+    }
+
+    // 初始化運算
+    window.onload = function() {
+      calculateTargets();
+    };
+  </script>
+</body>
+</html>
